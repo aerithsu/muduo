@@ -1,0 +1,56 @@
+# 忽略生成的构建目录
+build/
+cmake-build-debug/
+cmake-build-release/
+
+# 忽略 CMake 生成的文件
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+
+# 忽略编译器和 IDE 生成的文件
+*.obj
+*.o
+*.lo
+*.la
+*.al
+*.libs
+*.so
+*.dylib
+*.lib
+*.a
+*.exe
+*.ilk
+*.pdb
+*.idb
+*.class
+
+# 忽略调试文件
+*.vcxproj.user
+*.vcxproj.filters
+*.pdb
+*.dir
+*.DS_Store
+
+# 忽略日志文件
+*.log
+
+# 忽略临时文件
+*.swp
+*.tmp
+*.temp
+*~
+
+# 忽略系统文件
+Thumbs.db
+.DS_Store
+
+# 忽略 IDE 文件
+.idea/
+*.iml
+.vscode/
+
+# 忽略用户特定文件
+*.user
