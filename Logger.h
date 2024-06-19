@@ -39,11 +39,12 @@ enum class LogLevel {
 #define LOG_FATAL(logmsgFormat, ...) \
     do \
     { \
-         Logger& logger = Logger::getInstance();\
+         Logger& logger = Logger::getInstance(); \
          logger.setLogLevel(LogLevel::FATAL);\
          char buf[1024]{};\
          snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__);\
-         logger.log(buf);\
+         logger.log(buf);            \
+         exit(-1); \
     } while(0)
 #ifdef MUDEBUG
 #define LOG_DEBUG(logmsgFormat, ...) \
@@ -59,11 +60,12 @@ enum class LogLevel {
 #else
 #define LOG_DEBUG(logmsgFormat, ...)
 #endif
+
 //单例
 class Logger : nocopyable {
 public:
     // 获取唯一的Logger实例对象
-    static Logger& getInstance();
+    static Logger &getInstance();
 
 
     //设置日志级别

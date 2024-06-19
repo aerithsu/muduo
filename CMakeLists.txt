@@ -25,6 +25,11 @@ add_library(muduo SHARED
         TcpServer.cpp
         TcpServer.h
         EventLoop.cpp
-        EventLoop.h)
+        EventLoop.h
+        Poller.cpp
+        Poller.h
+        DefaultPoller.cpp
+        EpollPoller.cpp
+        EpollPoller.h)
 #muduo_base依赖muduo_net,所有muduo_net要写在前面
 target_link_libraries(muduo PRIVATE muduo_net muduo_base Threads::Threads)
