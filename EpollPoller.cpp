@@ -92,7 +92,8 @@ Timestamp EpollPoller::poll(int timeoutMs, Poller::ChannelList *activeChannels) 
     if (numEvents > 0) {
         LOG_INFO("%d events happened\n", numEvents);
         fillActiveChannels(numEvents, activeChannels);
-        if (numEvents == events_.size()) { //vector扩容
+        //vector扩容,因为使用的是LT模式,这次循环没有处理的事件下次还能触发
+        if (numEvents == events_.size()) {
             events_.resize(events_.size() * 2);
         }
     } else if (numEvents == 0) {
