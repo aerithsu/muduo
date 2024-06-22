@@ -32,6 +32,16 @@ add_library(muduo SHARED
         EpollPoller.cpp
         EpollPoller.h
         CurrentThread.cpp
-        CurrentThread.h)
+        CurrentThread.h
+        EventLoopThreadPool.cpp
+        EventLoopThreadPool.h
+        Thread.cpp
+        Thread.h
+        EventLoopThread.cpp
+        EventLoopThread.h
+        Acceptor.cpp
+        Acceptor.h
+        Socket.cpp
+        Socket.h)
 #muduo_base依赖muduo_net,所有muduo_net要写在前面
 target_link_libraries(muduo PRIVATE muduo_net muduo_base Threads::Threads)
