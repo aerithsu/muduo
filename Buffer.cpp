@@ -15,7 +15,7 @@ ssize_t Buffer::readFd(int fd, int *saveErrno) {
     iovec vec[2];
     const size_t writeable = writeableBytes();
     // iov先填充Buffer,再填充栈上的extraBuf
-    vec[0].iov_base = beginWrite() + writerIndex_;
+    vec[0].iov_base = beginWrite();
     vec[0].iov_len = writeable;
 
     vec[1].iov_base = extraBuf;
