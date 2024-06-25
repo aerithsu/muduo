@@ -5,7 +5,7 @@
 #ifndef MUDUO_CHANNEL_H
 #define MUDUO_CHANNEL_H
 
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include <functional>
 #include <memory>
 #include "Timestamp.h"
@@ -16,7 +16,7 @@
  */
 class EventLoop; //类型前置声明,因为没用到具体实现,所以只要声明不引入头文件,减少头文件的引入
 
-class Channel : nocopyable {
+class Channel : Noncopyable {
 public:
     using EventCallback = std::function<void()>;
     using ReadEventCallback = std::function<void(Timestamp)>;
@@ -53,8 +53,8 @@ public:
 
     int events() const { return events_; }
 
-    int set_revents(int revt) {
-        revents_ = revt;
+    void set_revents(int revent) {
+        revents_ = revent;
     }
 
 
@@ -114,9 +114,9 @@ public:
 
 private:
     //static的const变量可以直接定义,因为可以看作字面常量直接替换
-    static const int kNoneEvent = 0;
-    static const int kReadEvent = EPOLLIN | EPOLLPRI;
-    static const int kWriteEvent = EPOLLOUT;
+    static constexpr int kNoneEvent = 0;
+    static constexpr int kReadEvent = EPOLLIN | EPOLLPRI;
+    static constexpr int kWriteEvent = EPOLLOUT;
 
     EventLoop *loop_{}; //事件循环
     const int fd_{}; //Poller监听的对象
@@ -131,6 +131,7 @@ private:
     EventCallback writeCallback_;
     EventCallback closeCallback_;
     EventCallback errorCallback_;
+
     //当改变channel所表示的fd的events事件后,update负责在poller里更改fd相应事件的epoll_cnt
     void update();
 

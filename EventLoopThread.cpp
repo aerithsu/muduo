@@ -4,8 +4,10 @@
 
 #include "EventLoopThread.h"
 
-EventLoopThread::EventLoopThread(const EventLoopThread::ThreadInitCallback &cb, const std::string &name)
-        : thread_(std::bind(&EventLoopThread::threadFunc, this), name), callback_(cb) {
+#include <utility>
+
+EventLoopThread::EventLoopThread(EventLoopThread::ThreadInitCallback cb, const std::string &name)
+        : thread_(std::bind(&EventLoopThread::threadFunc, this), name), callback_(std::move(cb)) {
 
 }
 
@@ -22,7 +24,7 @@ EventLoop *EventLoopThread::startLoop() {
     EventLoop *loop{};
     {
         std::unique_lock lock{mtx_};
-        cond_.wait(lock, [&]() { return loop != nullptr; });
+        cond_.wait(lock, [&]() { return loop_ != nullptr; });
         loop = loop_;
     }
     return loop;
@@ -35,7 +37,7 @@ void EventLoopThread::threadFunc() {
         callback_(&tloop);
     }
     {
-        std::unique_lock lock{mtx_};
+        std::lock_guard lock{mtx_};
         loop_ = &tloop;
         cond_.notify_one();
     }

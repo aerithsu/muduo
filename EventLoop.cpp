@@ -52,7 +52,7 @@ EventLoop::~EventLoop() {
 
 void EventLoop::handleRead() {
     uint64_t one = 1;
-    ssize_t n = read(wakeupFd_, &one, sizeof one);
+    ssize_t n = read(wakeupFd_, &one, sizeof(one));
     if (n != sizeof one) {
         LOG_ERROR("Event:oop: handleRead() reads %zd bytes instead of 8", n);
     }
@@ -67,17 +67,18 @@ void EventLoop::loop() {
         // 监听两类fd, 一种是client的fd,一种是wakeupfd
         pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_);
         for (auto channel: activeChannels_) {
-            //Poller监听哪些channel发生事件了,然后上报给EventLoop,通知channel处理相应的事件
+            //Poller监听哪些channel发生事件了,然后上报给EventLoop,通知channel调用用户定义的回调处理相应的事件
             channel->handleEvent(pollReturnTime_);
         }
         //执行当前EventLoop事件循环需要处理的回调操作
         /*
-         * IO线程 mainLoop accept fd《=channel subloop
-         * mainLoop 事先注册一个回调cb（需要subloop来执行）    wakeup subloop后，执行下面的方法，执行之前mainloop注册的cb操作
+         * IO线程 mainLoop accept fd <== channel sub loop
+         * mainLoop 事先注册一个回调cb（需要sub loop来执行）    wakeup sub loop后，执行下面的方法，执行之前mainloop注册的cb操作
          */
-        doPendingFunctor();
+        doPendingFunctors();
     }
     LOG_INFO("EventLoop %p stop looping\n", this);
+    looping_ = false;
 }
 
 // 1.loop在自己的线程中调用quit
@@ -85,14 +86,14 @@ void EventLoop::loop() {
 //
 void EventLoop::quit() {
     quit_ = true;
-    if (!isInloopThread()) {
+    if (!isInLoopThread()) {
         //唤醒一下别的EventLoop的线程
         wakeup();
     }
 }
 
-void EventLoop::runInLoop(EventLoop::Functor cb) {
-    if (isInloopThread()) { //在当前的loop线程中,执行cb
+void EventLoop::runInLoop(const EventLoop::Functor& cb) {
+    if (isInLoopThread()) { //在当前的loop线程中,执行cb
         cb();
     } else { //在非当前loop线程中执行cb,就需要唤醒loop所在线程,执行cb
         queueInLoop(cb);
@@ -106,7 +107,7 @@ void EventLoop::queueInLoop(EventLoop::Functor cb) {
     }
     //第二个条件是callingPendingFunctors == true,代表正在执行回调,但是loop又有了新的回调
     //此时运行到下一轮循环还会被阻塞到poll调用,故需要wakeup一下,继续执行回调
-    if (!isInloopThread() || callingPendingFunctors) {
+    if (!isInLoopThread() || callingPendingFunctors_) {
         wakeup(); //唤醒loop所在线程
     }
 }
@@ -133,9 +134,9 @@ bool EventLoop::hasChannel(Channel *channel) {
     return poller_->hasChannel(channel);
 }
 
-void EventLoop::doPendingFunctor() {
+void EventLoop::doPendingFunctors() {
     std::vector<Functor> functors;
-    callingPendingFunctors = true;
+    callingPendingFunctors_ = true;
     //把pendingFunctors_里的回调函数交换到functors里面,这样可以减小加锁的时间
     //防止后续事件长时间无法加入pendingFunctors_中
     {
@@ -145,5 +146,5 @@ void EventLoop::doPendingFunctor() {
     for (const auto &functor: functors) {
         functor(); //执行当前loop需要执行的回调操作
     }
-    callingPendingFunctors = false;
+    callingPendingFunctors_ = false;
 }

@@ -1,12 +1,12 @@
 #include <iostream>
-#include <muduo/net/TcpServer.h>
-#include <muduo/net/EventLoop.h>
+#include "TcpServer.h"
+#include "EventLoop.h"
 #include <functional>
 #include <thread>
+#include "TcpConnection.h"
 
 using namespace std;
-using namespace muduo::net;
-using namespace muduo;
+
 // 把网络IO和用户的业务分开
 // 用户的连接和断开,用户的可读写时间
 
@@ -45,21 +45,20 @@ private:
     //专门处理用户的连接的创建和断开的回调
     void onConnection(const TcpConnectionPtr &conn) {
         if (conn->connected())
-            cout << conn->peerAddress().toIpPort() << "->" << conn->localAddress().toIpPort() << " state online" << endl;
+            cout << conn->peerAddress().toIpPort() << "->" << conn->localAddress().toIpPort() << " state online"
+                 << endl;
         else {
             cout << conn->peerAddress().toIpPort() << "->" << conn->localAddress().toIpPort() << " state outline"
                  << endl;
             conn->shutdown();
         }
-
-
     }
 
     //处理用户的读写事件的回调
     void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp time) {
         string buffer = buf->retrieveAllAsString();
         cout << "recv data:" << buffer << " time:" << time.toString() << endl;
-        conn->send(buf);
+        conn->send(buffer);
         //_loop->quit(); //不为
     }
 
@@ -70,7 +69,7 @@ private:
 
 int main(int argc, char const *argv[]) {
     EventLoop loop; //类似于创建了一个epoll
-    InetAddress addr{"127.0.0.1", 7999};
+    InetAddress addr{7999, "127.0.0.1"};
     ChatServer server(&loop, addr, "ChatServer");
     server.start(); //listenfd epoll_ctl => epoll
     loop.loop(); //以阻塞方式等待新用户连接新用户连接,已连接用户的读写事件等.

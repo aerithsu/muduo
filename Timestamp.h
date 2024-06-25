@@ -13,12 +13,12 @@ class Timestamp {
 public:
     Timestamp();
 
-    [[nodiscard]] std::string toString() const ;
+    std::string toString() const;
 
     static Timestamp now();
 
     explicit Timestamp(int64_t
-              microSecondsSinceEpoch);
+                       microSecondsSinceEpoch);
 
 private:
     int64_t microSecondsSinceEpoch_{};

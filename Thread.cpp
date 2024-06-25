@@ -41,10 +41,13 @@ void Thread::start() {
         func_(); //开启一个新线程,专门执行该线程函数
     });
     // 这里必须等待获取上面新创建的线程的tid值
+    // 防止后续出现访问还未正确初始化的tid
     sem_wait(&sem);
 }
 
 void Thread::join() {
+    if (joined_)
+        return;
     joined_ = true;
     thread_->join();
 }

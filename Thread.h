@@ -5,14 +5,14 @@
 #ifndef MUDUO_THREAD_H
 #define MUDUO_THREAD_H
 
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include <functional>
 #include <thread>
 #include <memory>
 #include <string>
 #include <atomic>
 
-class Thread : nocopyable {
+class Thread : Noncopyable {
 public:
     //如果想要参数可以直接使用std::bind()
     using ThreadFunc = std::function<void()>;

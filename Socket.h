@@ -9,14 +9,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include "InetAddress.h"
 #include "Logger.h"
 #include <cstring>
 #include <netinet/tcp.h> // For TCP_NODELAY
 #include <netinet/in.h>  // For IPPROTO_TCP
 
-class Socket : nocopyable {
+class Socket : Noncopyable {
 public:
     //创建完socket传入这个构造函数构造Socket类
     explicit Socket(int sockfd) : sockfd_(sockfd) {

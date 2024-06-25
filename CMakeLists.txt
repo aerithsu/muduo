@@ -12,12 +12,12 @@ find_package(Threads REQUIRED)
 #aux_source_directory(. SRC_LIST)
 #编译生成动态库muduo
 add_library(muduo SHARED
-        nocopyable.h
+        Noncopyable.h
         Logger.cpp
         Logger.h
         Timestamp.h
         Timestamp.cpp
-        nocopyable.cpp
+        Noncopyable.cpp
         InetAddress.cpp
         InetAddress.h
         Channel.cpp
@@ -42,6 +42,11 @@ add_library(muduo SHARED
         Acceptor.cpp
         Acceptor.h
         Socket.cpp
-        Socket.h)
+        Socket.h
+        TcpConnection.cpp
+        TcpConnection.h
+        Buffer.cpp
+        Buffer.h
+        Callbacks.h)
 #muduo_base依赖muduo_net,所有muduo_net要写在前面
 target_link_libraries(muduo PRIVATE muduo_net muduo_base Threads::Threads)

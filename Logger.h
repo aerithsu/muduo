@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "nocopyable.h"
+#include "Noncopyable.h"
 
 //定义日志的级别 INFO ERROR FATAL DEBUG
 enum class LogLevel {
@@ -62,7 +62,7 @@ enum class LogLevel {
 #endif
 
 //单例
-class Logger : nocopyable {
+class Logger : Noncopyable {
 public:
     // 获取唯一的Logger实例对象
     static Logger &getInstance();

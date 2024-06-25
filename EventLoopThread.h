@@ -7,14 +7,14 @@
 
 #include "Thread.h"
 #include <condition_variable>
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include "EventLoop.h"
 
-class EventLoopThread : nocopyable {
+class EventLoopThread : Noncopyable {
 public:
     using ThreadInitCallback = std::function<void(EventLoop *)>;
 
-    explicit EventLoopThread(const ThreadInitCallback &cb = ThreadInitCallback{}, const std::string &name = "");
+    explicit EventLoopThread(ThreadInitCallback cb = ThreadInitCallback{}, const std::string &name = "");
 
     ~EventLoopThread();
 

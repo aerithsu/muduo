@@ -21,29 +21,31 @@ void Channel::tie(const std::shared_ptr<void> &ptr) {
 
 void Channel::update() {
     //通过channel所属的eventloop,调用poller相应的方法,注册fd的events事件
+    loop_->updateChannel(this);
 }
 
 //在channel所属的EventLoop中,把当前的channel删除掉
 //@todo
 void Channel::remove() {
-
+    loop_->removeChannel(this);
 }
 
 void Channel::handleEvent(Timestamp receiveTime) {
     if (tied_) {
         std::shared_ptr<void> guard = tie_.lock();
+        // 只有所属TcpConnection对象还未析构的时候才继续
         if (guard) {
             handleEventWithGuard(receiveTime);
-        } else {
-            handleEventWithGuard(receiveTime);
         }
+    } else {
+        handleEventWithGuard(receiveTime);
     }
 }
 
 //根据Poller通知的channel发生的具体时间,由channel负责具体的回调操作
 void Channel::handleEventWithGuard(Timestamp receiveTime) {
-    //发生异常了
     LOG_INFO("channel handleEvent revents: %d", revents_);
+
     if ((revents_ & EPOLLHUP) && !(revents_ & EPOLLIN))
         if (closeCallback_)
             closeCallback_();

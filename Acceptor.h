@@ -11,7 +11,7 @@
 #include "Socket.h"
 
 // Acceptor是运行在baseLoop里面的
-class Acceptor : nocopyable {
+class Acceptor : Noncopyable {
 public:
     using NewConnectionCallback = std::function<void(int sockfd, const InetAddress &addr)>;
 

@@ -5,25 +5,25 @@
 #ifndef MUDUO_EVENTLOOPTHREADPOOL_H
 #define MUDUO_EVENTLOOPTHREADPOOL_H
 
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include <vector>
 #include <string>
 #include "EventLoopThread.h"
 #include <functional>
 
-class EventLoopThreadPool : nocopyable {
+class EventLoopThreadPool : Noncopyable {
 public:
     using ThreadInitCallback = std::function<void(EventLoop *)>;
 
     EventLoopThreadPool(EventLoop *baseloop, const std::string &nameArg);
 
-    ~EventLoopThreadPool(){}
+    ~EventLoopThreadPool() {}
 
     void setThreadNum(int numThreads) {
         numThreads_ = numThreads;
     }
 
-    void start(const ThreadInitCallback &cb = ThreadInitCallback());
+    void start(const ThreadInitCallback &cb = {});
 
     // 如果工作在多线程中,baseLoop_会默认以轮询的方式分配channel给subLoop
     EventLoop *getNextLoop();

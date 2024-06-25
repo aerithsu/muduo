@@ -25,7 +25,7 @@ public:
 
     void removeChannel(Channel *channel) override;
 
-    virtual ~EpollPoller();
+    ~EpollPoller() override;
 
 private:
     static const int kInitEventListSize = 16;

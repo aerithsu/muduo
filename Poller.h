@@ -6,14 +6,14 @@
 #define MUDUO_POLLER_H
 
 #include <sys/epoll.h>
-#include "nocopyable.h"
+#include "Noncopyable.h"
 #include <vector>
 #include "Channel.h"
 #include <unordered_map>
 #include "Timestamp.h"
 
 // 多路事件分发器的核心IO复用模块
-class Poller : nocopyable {
+class Poller : Noncopyable {
 public:
     using ChannelList = std::vector<Channel *>;
 

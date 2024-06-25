@@ -13,7 +13,7 @@
 constexpr int kNew = -1; //channel未添加到poller中, channel的index初始化也为-1
 constexpr int kAdded = 1; //channel已添加到poller中
 constexpr int kDeleted = 2; //channel已被删除
-
+// EPOLL_CLOEXEC 可以让子进程调用exec()的时候关闭该fd,防止其被子进程继承
 EpollPoller::EpollPoller(EventLoop *loop) : Poller(loop),
                                             epollfd_(epoll_create1(EPOLL_CLOEXEC)),
                                             events_(kInitEventListSize) {
@@ -23,7 +23,7 @@ EpollPoller::EpollPoller(EventLoop *loop) : Poller(loop),
 }
 
 EpollPoller::~EpollPoller() {
-    close(epollfd_);
+    ::close(epollfd_);
 }
 
 /*
@@ -44,7 +44,7 @@ void EpollPoller::updateChannel(Channel *channel) {
         }
         channel->set_index(kAdded);
         update(EPOLL_CTL_ADD, channel);
-    } else {
+    } else { //index == kAdded
         if (channel->isNoneEvent()) { //channel已经对任何事件都不感兴趣了
             update(EPOLL_CTL_DEL, channel);
             channel->set_index(kDeleted);
@@ -59,6 +59,7 @@ void EpollPoller::removeChannel(Channel *channel) {
     LOG_INFO("func = %s => fd = %d\n", __FUNCTION__, fd);
     int index = channel->index();
     channels_.erase(fd);
+    // 如果此channel加入到了红黑树里面,调用epoll_ctl函数
     if (index == kAdded) {
         update(EPOLL_CTL_DEL, channel);
     }
@@ -71,36 +72,37 @@ void EpollPoller::update(int operation, Channel *channel) const {
     int fd = channel->fd();
     event.events = channel->events();
     //epoll_event的data成员是个联合体
-    event.data.fd = fd;
     event.data.ptr = channel;
     if (epoll_ctl(epollfd_, operation, fd, &event) < 0) {
         if (operation == EPOLL_CTL_DEL) {
             LOG_ERROR("epoll_ctl del error: %d\n", errno);
         } else {
-            LOG_FATAL("epoll del error: %d\n", errno);
+            //添加和修改的错误是致命的
+            LOG_FATAL("epoll_ctl error: %d\n", errno);
         }
     }
 }
 
+//调用epoll_wait,把得到的epoll_events传入到EventLoop的activeChannels
 Timestamp EpollPoller::poll(int timeoutMs, Poller::ChannelList *activeChannels) {
     // 这个方法会被频繁调用,建议使用LOG_DEBUG
     LOG_INFO("func = %s => fd total count: %zu\n", __FUNCTION__, channels_.size());
-    // &*vec.begin()得到了vector底层元素数组的首地址
+    // &*vec.begin()得到了vector底层元素数组的首地址,返回值是有几个被监听的fd发生了事件
     int numEvents = ::epoll_wait(epollfd_, &*events_.begin(), static_cast<int>(events_.size()), timeoutMs);
     int saveErrno = errno; //一个线程是一个EventLoop,会多线程访问errno这个宏
     Timestamp now{Timestamp::now()};
     if (numEvents > 0) {
         LOG_INFO("%d events happened\n", numEvents);
         fillActiveChannels(numEvents, activeChannels);
-        //vector扩容,因为使用的是LT模式,这次循环没有处理的事件下次还能触发
+        //vector扩容,因为使用的是LT模式,由于events_大小受限制这次循环没有处理的事件下次还能触发
         if (numEvents == events_.size()) {
             events_.resize(events_.size() * 2);
         }
     } else if (numEvents == 0) {
-        LOG_INFO("%s timeou\n", __FUNCTION__);
+        LOG_INFO("%s timeout \n", __FUNCTION__);
     } else {
+        //系统调用被中断
         if (saveErrno != EINTR) {
-            errno = saveErrno; //拿到最开始的errno
             LOG_ERROR("EPollPoller::poll() err!\n");
         }
     }
@@ -109,7 +111,7 @@ Timestamp EpollPoller::poll(int timeoutMs, Poller::ChannelList *activeChannels) 
 
 void EpollPoller::fillActiveChannels(int numEvents, Poller::ChannelList *activeChannels) const {
     for (int i = 0; i < numEvents; ++i) {
-        Channel *channel = static_cast<Channel *>(events_[i].data.ptr);
+        auto *channel = static_cast<Channel *>(events_[i].data.ptr);
         channel->set_revents(events_[i].events);
         //EventLoop就拿到了它的poller给它返回的所有发生事件的channel列表了
         activeChannels->push_back(channel);
